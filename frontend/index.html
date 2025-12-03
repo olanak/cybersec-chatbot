@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cybersecurity RAG Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 12px 16px;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      overflow-y: auto;
+      gap: 12px;
+    }
+    .message {
+      max-width: 70%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+    .user {
+      align-self: flex-end;
+      background: #1f2937;
+    }
+    .bot {
+      align-self: flex-start;
+      background: #111827;
+      border: 1px solid #1f2937;
+    }
+    #input-bar {
+      display: flex;
+      padding: 10px;
+      gap: 8px;
+      border-top: 1px solid #1f2937;
+      background: #020617;
+    }
+    #message-input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+    }
+    #send-btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    #send-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    small {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔐 Cybersecurity RAG Assistant</h1>
+  </header>
+
+  <div id="chat-container"></div>
+
+  <div id="input-bar">
+    <input
+      id="message-input"
+      type="text"
+      placeholder="Ask a defensive cybersecurity question..."
+    />
+    <button id="send-btn">Send</button>
+  </div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000/chat";
+
+    const chatContainer = document.getElementById("chat-container");
+    const messageInput = document.getElementById("message-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    function addMessage(text, type) {
+      const div = document.createElement("div");
+      div.className = `message ${type}`;
+      div.textContent = text;
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      messageInput.value = "";
+      messageInput.focus();
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: text }),
+        });
+
+        if (!res.ok) {
+          addMessage("Error: " + res.statusText, "bot");
+        } else {
+          const data = await res.json();
+          const answerText = data.answer || "(No answer)";
+          const sources = data.sources || [];
+          let fullAnswer = answerText;
+
+          if (sources.length) {
+            fullAnswer += "\n\nSources:\n" + sources.join("\n");
+          }
+
+          addMessage(fullAnswer, "bot");
+        }
+      } catch (err) {
+        console.error(err);
+        addMessage("Error calling backend. Check console / server logs.", "bot");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    messageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Initial welcome
+    addMessage(
+      "Hi! I am your defensive cybersecurity assistant.\nAsk me about secure configuration, best practices, or incident response. I will base answers on your uploaded docs.",
+      "bot"
+    );
+  </script>
+</body>
+</html>
