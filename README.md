@@ -1,5 +1,5 @@
 
-```markdown
+```
 # 🛡️ Cybersecurity RAG Chatbot (NIST-Based)
 
 A **domain-specific cybersecurity chatbot** built using **Retrieval-Augmented Generation (RAG)** and a Large Language Model (LLM).  
@@ -216,11 +216,5 @@ This project demonstrates:
 * Multi-format document retrieval
 * Controlled evaluation (RAG vs no-RAG)
 * Responsible AI behavior in cybersecurity contexts
-
----
-
-## 📜 License
-
-This project is intended for educational and research purposes.
 
 ---
