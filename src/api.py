@@ -1,20 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
 from src.rag_chain import answer_question
 
+app = FastAPI()
 
-app = FastAPI(
-    title="Cybersecurity RAG Chatbot",
-    description="Defensive cybersecurity assistant using RAG + Qwen/Qwen2.5-7B-Instruct",
-    version="0.1.0",
-)
-
-# Allow frontend (e.g., localhost) to call the API
+# CORS (local frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # for development; you can restrict later
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,24 +16,15 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
-
-class ChatResponse(BaseModel):
-    answer: str
-    sources: list[str]
-
-@app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest):
-    """
-    Main chat endpoint.
-    Takes a user message, runs RAG pipeline, returns answer + sources.
-    """
-    result = answer_question(request.message)
-
-    return ChatResponse(
-        answer=result["answer"],
-        sources=result["sources"],
-    )
+    use_rag: bool = True
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.post("/chat")
+def chat(request: ChatRequest):
+    return answer_question(
+        query=request.message,
+        use_rag=request.use_rag
+    )

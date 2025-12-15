@@ -1,87 +1,88 @@
 
-# 🛡️ Cybersecurity RAG Chatbot
+```markdown
+# 🛡️ Cybersecurity RAG Chatbot (NIST-Based)
 
-*A Defensive, NIST-Inspired Cybersecurity Assistant Powered by RAG + Qwen2.5 LLM*
-
----
-
-## 📌 Overview
-
-The **Cybersecurity RAG Chatbot** is a domain-specific assistant designed to provide **defensive cybersecurity guidance** using:
-
-* **Retrieval-Augmented Generation (RAG)**
-* **HuggingFace Qwen/Qwen2.5-7B-Instruct**
-* **LangChain + ChromaDB**
-* **FastAPI backend**
-* **Simple browser-based chat UI**
-
-This chatbot answers questions based strictly on **uploaded NIST-style cybersecurity documents**, making it reliable, explainable, and grounded in real policy/guidelines.
+A **domain-specific cybersecurity chatbot** built using **Retrieval-Augmented Generation (RAG)** and a Large Language Model (LLM).  
+The system answers questions based strictly on **local NIST cybersecurity documents** and supports **comparison between RAG and non-RAG modes**.
 
 ---
 
-## 🧠 Features
+## 📌 Project Overview
 
-### ✔ Retrieval-Augmented Generation (RAG)
+This project implements a **Retrieval-Augmented Generation (RAG) pipeline** that:
 
-Your cybersecurity PDFs/TXT files are converted into vector embeddings and stored in **ChromaDB**.
-The chatbot retrieves the most relevant sections before generating an answer.
+- Ingests **PDF, Word (.docx), and Excel (.xlsx)** cybersecurity documents
+- Stores embeddings in **ChromaDB**
+- Uses **Qwen/Qwen2.5-7B-Instruct** via Hugging Face for answer generation
+- Allows **runtime comparison** between:
+  - **RAG-enabled answers**
+  - **LLM-only (no RAG) answers**
+- Reduces hallucination by grounding responses in local documents
 
-### ✔ Defensive Security Only
+The project is designed for **academic evaluation**, **cybersecurity research**, and **demonstrating RAG effectiveness**.
 
-The assistant provides:
+---
 
-* NIST-aligned best practices
-* Secure configuration guidance
-* Incident response concepts
-* Access control / audit / hardening recommendations
+## 🧠 Key Features
 
-It **does NOT** provide offensive, hacking, or exploit instructions.
+- ✅ Retrieval-Augmented Generation (RAG)
+- ✅ RAG ON / OFF toggle in the UI
+- ✅ Local-only execution (no cloud dependency)
+- ✅ Multi-format document ingestion:
+  - PDF
+  - DOCX
+  - XLSX
+- ✅ Hallucination reduction with relevance thresholds
+- ✅ Source citation (only when grounded)
+- ✅ Minimal, white, academic UI
+- ✅ FastAPI backend
 
-### ✔ HuggingFace Qwen2.5-7B-Instruct
+---
 
-Uses the **HF Inference API** via the modern:
+## 📂 Project Structure
 
-```python
-client.chat.completions.create(...)
 ```
 
-### ✔ FastAPI Backend
-
-Exposes a `/chat` endpoint used by the frontend.
-
-### ✔ Simple, Clean Web UI
-
-Built with vanilla HTML/JS — no framework required.
-
----
-
-## 📁 Project Structure
-
-```
 cybersec-chatbot/
 │
-├── data/                 → Cybersecurity PDFs/TXT (ignored by Git)
-├── vectorstore/          → ChromaDB persistent database
+├── data/                  # Local cybersecurity documents (PDF, DOCX, XLSX)
+├── vectorstore/           # ChromaDB persistent embeddings
 │
 ├── src/
-│   ├── api.py            → FastAPI server
-│   ├── ingest.py         → Loads & indexes documents into vector DB
-│   ├── rag_chain.py      → RAG pipeline + HF LLM calls
-│   ├── config.py         → Configuration (paths, HF API key)
-│   └── __init__.py
+│   ├── ingest.py          # Document ingestion & embedding
+│   ├── rag_chain.py       # RAG + non-RAG logic
+│   ├── api.py             # FastAPI backend
+│   ├── config.py          # Configuration variables
+│   └── **init**.py
 │
 ├── frontend/
-│   └── index.html        → Chat UI
+│   └── index.html         # Minimal web UI with RAG toggle
 │
 ├── requirements.txt
 └── README.md
-```
+
+````
 
 ---
 
-## 🚀 Getting Started
+## ⚙️ Requirements
 
-### 1️⃣ Install dependencies
+- Python 3.10+
+- Hugging Face API key
+- Virtual environment (recommended)
+
+---
+
+## 🔧 Installation
+
+### 1️⃣ Create & activate virtual environment
+```bash
+python -m venv venv
+source venv/bin/activate      # Linux/macOS
+venv\Scripts\activate         # Windows
+````
+
+### 2️⃣ Install dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -89,160 +90,137 @@ pip install -r requirements.txt
 
 ---
 
-### 2️⃣ Add your HuggingFace API Key
+## 🔑 Environment Configuration
 
 Create a `.env` file in the project root:
 
-```
+```env
 HF_API_KEY=your_huggingface_api_key
 ```
 
 ---
 
-### 3️⃣ Add Cybersecurity Documents
+## 📥 Document Ingestion
 
-Place your `.pdf` or `.txt` files into:
+Place your documents in the `data/` directory:
 
 ```
 data/
+├── NISTCSFW.pdf
+├── NIST.CSWP.29.ipd.docx
+└── csf2.xlsx
 ```
 
-These will be embedded and stored in the vector database.
-
----
-
-### 4️⃣ Build the Vector Database
-
-Run:
+Run ingestion:
 
 ```bash
 python -m src.ingest
 ```
 
-You should see:
+This will:
 
-```
-Loading documents...
-Loaded X documents. Chunking...
-Created Y chunks. Building vector DB...
-Vector store created successfully!
-```
+* Load documents
+* Chunk text
+* Generate embeddings
+* Persist vectors in ChromaDB
 
 ---
 
-### 5️⃣ Start the FastAPI Server
+## 🚀 Running the Application (Local)
+
+### ▶ Backend (FastAPI)
+
+From the project root:
 
 ```bash
 uvicorn src.api:app --reload
 ```
 
-The backend runs at:
+Backend URL:
 
-👉 [http://127.0.0.1:8000](http://127.0.0.1:8000)
-
-Test:
-
-👉 [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
-
----
-
-### 6️⃣ Start the Frontend (Local Web Server)
-
-```bash
-cd frontend
-python -m http.server 5500
+```
+http://127.0.0.1:8000
 ```
 
-Open:
+Health check:
 
-👉 [http://127.0.0.1:5500/index.html](http://127.0.0.1:5500/index.html)
-
-You now have a working chatbot 🎉
-
----
-
-## 🧩 How It Works (Architecture)
-
-1. **Document Ingestion (`ingest.py`)**
-
-   * Load PDFs/Text
-   * Split into chunks
-   * Create embeddings
-   * Store in ChromaDB
-
-2. **RAG Query Flow (`rag_chain.py`)**
-
-   * Convert question → embedding
-   * Retrieve similar context chunks
-   * Feed context → Qwen LLM
-   * Generate grounded cybersecurity answer
-
-3. **Qwen2.5-7B LLM**
-
-   * Uses HuggingFace API
-   * Chat completion mode
-   * Strong reasoning for defensive security topics
-
-4. **API Layer (`api.py`)**
-
-   * `/chat` → Accepts questions
-   * Calls RAG pipeline
-   * Returns answer + cited sources
-
-5. **Frontend**
-
-   * Sends question via fetch()
-   * Shows answers in a chat interface
+```
+http://127.0.0.1:8000/health
+```
 
 ---
 
-## 🛡️ Safety & Guardrails
+### ▶ Frontend (UI)
 
-The model is instructed to:
+From the `frontend` directory:
 
-* Provide **defensive security only**
-* Refuse:
+```bash
+python -m http.server 5500 --bind 127.0.0.1
+```
 
-  * Hacking instructions
-  * Exploitation techniques
-  * Malware guidance
-* Redirect harmful queries to safe practices
+Open in browser:
 
----
-
-## 📌 Requirements
-
-* Python 3.10+
-* HuggingFace API key
-* Internet access (for model inference)
+```
+http://127.0.0.1:5500
+```
 
 ---
 
-## 🧪 Example Queries
+## 🧪 Using RAG vs Non-RAG Mode
 
-Try asking:
+The UI includes a checkbox:
 
-* "According to NIST, what are the phases of incident response?"
-* "What access control best practices should be implemented?"
-* "How should logs be managed for audit and accountability?"
-* "Explain configuration management from a cybersecurity perspective."
+* ✅ **Checked** → RAG enabled (answers grounded in documents + sources)
+* ❌ **Unchecked** → LLM-only answers (no retrieval, no sources)
+
+This allows direct **comparison of hallucination vs grounded answers**, as required by RAG evaluation methodologies.
 
 ---
 
-## 🤝 Contributing
+## 📊 Example Questions
 
-Pull requests are welcome.
-Please keep contributions aligned with **defensive cybersecurity principles**.
+**In-domain (RAG ON):**
+
+* What are the NIST CSF Tiers?
+* How do Tiers support cybersecurity risk management?
+* What is the purpose of CSF 2.0?
+
+**Out-of-domain:**
+
+* Explain quantum key distribution
+* What is the OSI model?
+
+Expected behavior:
+
+* RAG answers grounded questions
+* Non-RAG may hallucinate
+* Out-of-scope questions return “not found” with no sources
+
+---
+
+## 🛡️ Hallucination Control
+
+* Similarity-score thresholding
+* Soft relevance gating
+* No sources returned if no relevant document context exists
+* Explicit refusal when information is not in documents
+
+---
+
+## 🎓 Academic Relevance
+
+This project demonstrates:
+
+* Practical RAG implementation
+* LLM grounding techniques
+* Multi-format document retrieval
+* Controlled evaluation (RAG vs no-RAG)
+* Responsible AI behavior in cybersecurity contexts
 
 ---
 
 ## 📜 License
 
-MIT License (or choose your own).
+This project is intended for educational and research purposes.
 
 ---
-
-## ⭐ If you like this project
-
-Give the repo a star on GitHub — it helps others find it!
-

@@ -1,36 +1,81 @@
 import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.document_loaders import (
+    PyPDFLoader,
+    TextLoader,
+    Docx2txtLoader,
+    UnstructuredExcelLoader
+)
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 from src.config import DATA_DIR, VECTOR_DB_DIR, EMBEDDING_MODEL
-
+from langchain_community.vectorstores.utils import filter_complex_metadata
 
 
 
 def load_documents():
-    docs = []
+    """
+    Load documents from DATA_DIR.
+    Supported formats:
+    - PDF (.pdf)
+    - Word (.docx)
+    - Excel (.xlsx)
+    - Text / Markdown (.txt, .md)
+    """
+    documents = []
+
     for filename in os.listdir(DATA_DIR):
         path = os.path.join(DATA_DIR, filename)
+        fname = filename.lower()
 
-        if filename.endswith(".pdf"):
-            loader = PyPDFLoader(path)
-        elif filename.endswith(".txt") or filename.endswith(".md"):
-            loader = TextLoader(path)
-        else:
-            print(f"Skipping unsupported file: {filename}")
-            continue
+        try:
+            if fname.endswith(".pdf"):
+                loader = PyPDFLoader(path)
 
-        docs.extend(loader.load())
+            elif fname.endswith(".docx"):
+                loader = Docx2txtLoader(path)
 
-    return docs
+            elif fname.endswith(".xlsx"):
+                loader = UnstructuredExcelLoader(
+                    path,
+                    mode="elements"  # preserves rows/cells better
+                )
 
-def chunk_documents(docs):
+            elif fname.endswith(".txt") or fname.endswith(".md"):
+                loader = TextLoader(path)
+
+            else:
+                print(f"Skipping unsupported file: {filename}")
+                continue
+
+            docs = loader.load()
+
+            # Attach filename as source metadata
+            for doc in docs:
+                doc.metadata["source"] = filename
+
+            documents.extend(docs)
+            print(f"Loaded: {filename}")
+
+        except Exception as e:
+            print(f"Error loading {filename}: {e}")
+
+    return documents
+
+
+def chunk_documents(documents):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
-        chunk_overlap=100,
+        chunk_overlap=100
     )
-    return splitter.split_documents(docs)
+    chunks = splitter.split_documents(documents)
+
+    #CRITICAL FIX: remove complex metadata (lists, dicts, etc.)
+    chunks = filter_complex_metadata(chunks)
+
+    return chunks
+
+
 
 def build_vector_db(chunks):
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
@@ -38,11 +83,12 @@ def build_vector_db(chunks):
     vectordb = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
-        persist_directory=VECTOR_DB_DIR,
+        persist_directory=VECTOR_DB_DIR
     )
 
-    vectordb.persist()
-    print("Vector store created successfully!")
+    print(" Vector store created and persisted successfully!")
+
+
 
 if __name__ == "__main__":
     print("Loading documents...")

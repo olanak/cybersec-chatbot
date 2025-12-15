@@ -2,168 +2,158 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cybersecurity RAG Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      background: #0f172a;
-      color: #e5e7eb;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #111;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
+
     header {
-      padding: 12px 16px;
-      background: #020617;
-      border-bottom: 1px solid #1f2937;
+      padding: 14px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      font-weight: 600;
     }
-    header h1 {
-      margin: 0;
-      font-size: 18px;
+
+    #controls {
+      max-width: 900px;
+      margin: 10px auto;
+      padding: 0 20px;
+      font-size: 14px;
     }
-    #chat-container {
+
+    #chat {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
       overflow-y: auto;
-      gap: 12px;
     }
+
     .message {
-      max-width: 70%;
-      padding: 10px 12px;
-      border-radius: 8px;
-      white-space: pre-wrap;
+      margin-bottom: 16px;
+      line-height: 1.6;
     }
+
     .user {
-      align-self: flex-end;
-      background: #1f2937;
+      font-weight: 600;
     }
+
     .bot {
-      align-self: flex-start;
-      background: #111827;
-      border: 1px solid #1f2937;
+      border-left: 4px solid #2563eb;
+      padding-left: 12px;
     }
-    #input-bar {
+
+    .sources {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #555;
+    }
+
+    footer {
+      border-top: 1px solid #e5e7eb;
+      padding: 12px 20px;
       display: flex;
-      padding: 10px;
-      gap: 8px;
-      border-top: 1px solid #1f2937;
-      background: #020617;
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
     }
-    #message-input {
+
+    input[type="text"] {
       flex: 1;
-      padding: 8px;
+      padding: 10px;
+      font-size: 15px;
+      border: 1px solid #d1d5db;
       border-radius: 6px;
-      border: 1px solid #374151;
-      background: #020617;
-      color: #e5e7eb;
     }
-    #send-btn {
-      padding: 8px 14px;
-      border-radius: 6px;
-      border: none;
+
+    button {
+      padding: 10px 18px;
+      font-size: 15px;
       background: #2563eb;
       color: white;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-    }
-    #send-btn:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-    small {
-      display: block;
-      margin-top: 6px;
-      font-size: 11px;
-      color: #9ca3af;
     }
   </style>
 </head>
+
 <body>
-  <header>
-    <h1>🔐 Cybersecurity RAG Assistant</h1>
-  </header>
+  <header>Cybersecurity RAG Assistant (Local)</header>
 
-  <div id="chat-container"></div>
-
-  <div id="input-bar">
-    <input
-      id="message-input"
-      type="text"
-      placeholder="Ask a defensive cybersecurity question..."
-    />
-    <button id="send-btn">Send</button>
+  <div id="controls">
+    <label>
+      <input type="checkbox" id="rag-toggle" checked />
+      Use Retrieval-Augmented Generation (RAG)
+    </label>
   </div>
+
+  <div id="chat"></div>
+
+  <footer>
+    <input id="input" type="text" placeholder="Ask a cybersecurity question..." />
+    <button id="send">Send</button>
+  </footer>
 
   <script>
     const API_URL = "http://127.0.0.1:8000/chat";
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+    const ragToggle = document.getElementById("rag-toggle");
 
-    const chatContainer = document.getElementById("chat-container");
-    const messageInput = document.getElementById("message-input");
-    const sendBtn = document.getElementById("send-btn");
-
-    function addMessage(text, type) {
+    function addMessage(text, cls, sources = []) {
       const div = document.createElement("div");
-      div.className = `message ${type}`;
+      div.className = "message " + cls;
       div.textContent = text;
-      chatContainer.appendChild(div);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      if (sources.length > 0) {
+        const s = document.createElement("div");
+        s.className = "sources";
+        s.textContent = "Sources: " + sources.join(", ");
+        div.appendChild(s);
+      }
+
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
     }
 
     async function sendMessage() {
-      const text = messageInput.value.trim();
+      const text = input.value.trim();
       if (!text) return;
 
-      addMessage(text, "user");
-      messageInput.value = "";
-      messageInput.focus();
-      sendBtn.disabled = true;
+      addMessage("You: " + text, "user");
+      input.value = "";
 
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ message: text }),
-        });
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          use_rag: ragToggle.checked
+        })
+      });
 
-        if (!res.ok) {
-          addMessage("Error: " + res.statusText, "bot");
-        } else {
-          const data = await res.json();
-          const answerText = data.answer || "(No answer)";
-          const sources = data.sources || [];
-          let fullAnswer = answerText;
-
-          if (sources.length) {
-            fullAnswer += "\n\nSources:\n" + sources.join("\n");
-          }
-
-          addMessage(fullAnswer, "bot");
-        }
-      } catch (err) {
-        console.error(err);
-        addMessage("Error calling backend. Check console / server logs.", "bot");
-      } finally {
-        sendBtn.disabled = false;
-      }
+      const data = await res.json();
+      addMessage(data.answer, "bot", data.sources || []);
     }
 
-    sendBtn.addEventListener("click", sendMessage);
-    messageInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+    sendBtn.onclick = sendMessage;
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") sendMessage();
     });
 
-    // Initial welcome
     addMessage(
-      "Hi! I am your defensive cybersecurity assistant.\nAsk me about secure configuration, best practices, or incident response. I will base answers on your uploaded docs.",
+      "Hello 👋 I can answer questions with or without RAG. Use the checkbox to compare.",
       "bot"
     );
   </script>
