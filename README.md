@@ -1,5 +1,3 @@
-
-```
 # 🛡️ Cybersecurity RAG Chatbot (NIST-Based)
 
 A **domain-specific cybersecurity chatbot** built using **Retrieval-Augmented Generation (RAG)** and a Large Language Model (LLM).  
