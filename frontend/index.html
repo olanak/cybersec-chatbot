@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Cybersecurity RAG Chatbot</title>
@@ -84,11 +85,24 @@
       border-radius: 6px;
       cursor: pointer;
     }
+
+    #clear-btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #374151;
+      color: white;
+      cursor: pointer;
+    }
+
+    #clear-btn:hover {
+      background: #4b5563;
+    }
   </style>
 </head>
 
 <body>
-  <header>Cybersecurity RAG Assistant (Local)</header>
+  <header>RAG chatbot for The NIST Cybersecurity Framework 2.0 </header>
 
   <div id="controls">
     <label>
@@ -102,6 +116,7 @@
   <footer>
     <input id="input" type="text" placeholder="Ask a cybersecurity question..." />
     <button id="send">Send</button>
+    <button id="clear-btn" type="button">Clear</button>
   </footer>
 
   <script>
@@ -110,6 +125,8 @@
     const input = document.getElementById("input");
     const sendBtn = document.getElementById("send");
     const ragToggle = document.getElementById("rag-toggle");
+    const clearBtn = document.getElementById("clear-btn");
+
 
     function addMessage(text, cls, sources = []) {
       const div = document.createElement("div");
@@ -127,6 +144,7 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
+
     async function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
@@ -136,7 +154,9 @@
 
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           message: text,
           use_rag: ragToggle.checked
@@ -156,6 +176,16 @@
       "Hello 👋 I can answer questions with or without RAG. Use the checkbox to compare.",
       "bot"
     );
+    clearBtn.addEventListener("click", () => {
+      chat.innerHTML = "";
+
+      // Optional: re-add welcome message
+      addMessage(
+        "Hello 👋 I can answer questions with or without RAG. Use the checkbox to compare.",
+        "bot"
+      );
+    });
   </script>
 </body>
+
 </html>
