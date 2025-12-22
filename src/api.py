@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.rag_chain import answer_question
 
+
 app = FastAPI()
 
 # CORS (local frontend)
@@ -17,6 +18,8 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
     use_rag: bool = True
+    top_k: int = 4
+    threshold: float = 0.75
 
 @app.get("/health")
 def health():
@@ -26,5 +29,7 @@ def health():
 def chat(request: ChatRequest):
     return answer_question(
         query=request.message,
-        use_rag=request.use_rag
+        use_rag=request.use_rag,
+        top_k=request.top_k,
+        threshold=request.threshold
     )
