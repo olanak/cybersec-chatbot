@@ -1,0 +1,78 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual environment
+venv/
+.env/
+.env.*
+
+
+# -----------------------------
+# OS / Editors
+# -----------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+
+# -----------------------------
+# Logs / Cache
+# -----------------------------
+*.log
+logs/
+.cache/
+*.tmp
+*.temp
+
+
+# -----------------------------
+# HuggingFace / LangChain / Chroma
+# -----------------------------
+# Chroma vector DB (your RAG memory)
+vectorstore/
+
+# HuggingFace cache
+~/.cache/huggingface/
+huggingface/
+hf_cache/
+
+# LangChain cache
+lc_cache/
+.langchain/
+
+
+# -----------------------------
+# Project Data
+# -----------------------------
+# Don’t commit your private PDFs, txt, or proprietary docs
+data/
+!data/README.md   # allow a placeholder file if you want
+
+
+# -----------------------------
+# Environment / Credentials
+# -----------------------------
+# Critical: prevents API key leaks
+.env
+*.env
+config.env
+
+# Any secrets accidentally created
+secrets.json
+secret.txt
+
+
+# -----------------------------
+# Build / Distribution
+# -----------------------------
+build/
+dist/
+*.egg-info/
