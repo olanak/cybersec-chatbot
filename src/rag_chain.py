@@ -3,6 +3,8 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from src.config import VECTOR_DB_DIR, HF_MODEL, HF_API_KEY, EMBEDDING_MODEL, TOP_K
 
+from src.log_utils import log_rag_example
+
 # -----------------------------
 # Vector DB + Embeddings
 # -----------------------------
@@ -25,7 +27,6 @@ client = InferenceClient(api_key=HF_API_KEY)
 # -----------------------------
 
 SYSTEM_PROMPT = """
-You are a defensive cybersecurity assistant.
 You must answer ONLY using the provided context when available.
 If the answer is not in the documents, say you do not know.
 Do NOT hallucinate.
@@ -114,6 +115,14 @@ def answer_question(query: str, use_rag: bool = True):
     ))
 
     answer = generate_answer(query, context)
+    
+    # LOG REAL CHATBOT ANSWER + CONTEXTS
+    log_rag_example(
+        question=query,
+        answer=answer,
+        contexts=[doc.page_content for doc in relevant_docs],
+    )
+    
 
     return {
         "answer": answer,
