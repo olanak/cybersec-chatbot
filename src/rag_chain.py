@@ -3,6 +3,8 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from src.config import VECTOR_DB_DIR, HF_MODEL, HF_API_KEY, EMBEDDING_MODEL, TOP_K
 
+RELEVANCE_THRESHOLD = 0.75  # calibrated for mixed PDF/DOCX/XLSX data
+
 # -----------------------------
 # Vector DB + Embeddings
 # -----------------------------
@@ -80,23 +82,23 @@ def answer_without_rag(question: str):
 # RAG pipeline (with toggle)
 # -----------------------------
 
-RELEVANCE_THRESHOLD = 0.75  # calibrated for mixed PDF/DOCX/XLSX data
+#def answer_question(query: str, use_rag: bool = True):
+def answer_question(query, use_rag=True, top_k=4, threshold=0.75):
 
-def answer_question(query: str, use_rag: bool = True):
 
     # 🔹 RAG OFF
     if not use_rag:
         return answer_without_rag(query)
 
     # 🔹 RAG ON
-    results = vectordb.similarity_search_with_score(query, k=TOP_K)
+    results = vectordb.similarity_search_with_score(query, k=top_k)
 
     relevant_docs = [
         doc for doc, score in results
-        if score <= RELEVANCE_THRESHOLD
+        if score <= threshold
     ]
 
-    # ❌ Nothing relevant found
+    # Nothing relevant found
     if not relevant_docs:
         return {
             "answer": (

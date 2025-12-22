@@ -37,7 +37,7 @@ logs/
 # HuggingFace / LangChain / Chroma
 # -----------------------------
 # Chroma vector DB (your RAG memory)
-vectorstore/
+#vectorstore/
 
 # HuggingFace cache
 ~/.cache/huggingface/
@@ -49,12 +49,6 @@ lc_cache/
 .langchain/
 
 
-# -----------------------------
-# Project Data
-# -----------------------------
-# Don’t commit your private PDFs, txt, or proprietary docs
-data/
-!data/README.md   # allow a placeholder file if you want
 
 
 # -----------------------------
